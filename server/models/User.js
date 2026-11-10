@@ -3,7 +3,7 @@ import bycrypt from 'bcryptjs'
 
 const userSchema = new mongoose.Schema({
   name: {
-    tyepe: String,
+    type: String,
     required: [true, "Please Provide Your Full Name"],
     trim: true,
     maxlength: [50, "Name can not exceed 50 characters"],
@@ -21,11 +21,16 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
+        required: true,
+        select: false,
+    },
+    role: {
+        type:String,
         enum: {
             values: ['jobseeker', 'employer'],
             message:`${VALUE} is not a valid role`,
         },
-        default:'jobseeker',
+        default: 'jobseeker',
     },
     bio: {
         type: String,
