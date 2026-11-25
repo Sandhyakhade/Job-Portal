@@ -1,122 +1,133 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { useAuth } from "./context/AuthContext";
+import Register from "./components/Register";
+import Login from "./components/Login";
+import PostJobForm from "./components/PostJobForm";
+import JobList from "./components/JobList";
+import api from "./api/axios";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user, loading: authLoading, logout } = useAuth();
+  const [showRegister, setShowRegister] = useState(false);
+
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [jobsError, setJobsError] = useState("");
+
+  const fetchJobs = async (searchTerm = "") => {
+    try {
+      setJobsLoading(true);
+      setJobsError("");
+      const response = await api.get("/jobs", {
+        params: searchTerm ? { keyword: searchTerm } : {},
+      });
+      setJobs(response.data.jobs);
+    } catch (err) {
+      setJobsError(err.response?.data?.message || "Failed to fetch jobs");
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchJobs();
+    }
+  }, [user]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-slate-600 font-medium">
+          Checking authentication session...
+        </p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-md border border-slate-200 p-8">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-extrabold text-indigo-600">
+              Job Portal
+            </h1>
+          </div>
+
+          <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-lg mb-6">
+            <button
+              type="button"
+              onClick={() => setShowRegister(false)}
+              className={`py-2 text-sm font-semibold rounded-md transition-all cursor-pointer ${
+                !showRegister
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRegister(true)}
+              className={`py-2 text-sm font-semibold rounded-md transition-all cursor-pointer ${
+                showRegister
+                  ? "bg-white text-indigo-600 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Register
+            </button>
+          </div>
+
+          {showRegister ? <Register /> : <Login />}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen bg-slate-50">
+      {/* Top Navigation Bar */}
+      <header className="bg-white border-b border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-extrabold text-indigo-600">
+              Job Portal
+            </h1>
+            <span className="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide rounded-full bg-indigo-100 text-indigo-700">
+              {user.role}
+            </span>
+          </div>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-600 hidden sm:inline">
+              Welcome, <strong className="text-slate-900">{user.name}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={logout}
+              className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold transition-colors cursor-pointer"
+            >
+              Logout
+            </button>
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Main Content Container */}
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        {user.role === "employer" && <PostJobForm onJobCreated={fetchJobs} />}
+
+        <JobList
+          jobs={jobs}
+          loading={jobsLoading}
+          error={jobsError}
+          onSearch={fetchJobs}
+        />
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;

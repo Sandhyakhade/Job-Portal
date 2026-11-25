@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import authRoutes from './routes/authRoutes.js';
+import jobRoutes from "./routes/jobRoutes.js";
 dotenv.config();
 connectDB();
 const app = express();
@@ -11,6 +12,7 @@ app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
+app.use('/api/jobs', jobRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
